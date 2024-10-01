@@ -44,6 +44,4 @@ jobs:
           tags: |
             "${{vars.BUILDKIT_IMAGE}}:${{ env.TAG_NAME }}"
             "${{vars.BUILDKIT_IMAGE}}:latest"
-            "ghcr.io/${{vars.BUILDKIT_IMAGE}}:${{ env.TAG_NAME }}"
-            "ghcr.io/${{vars.BUILDKIT_IMAGE}}:latest"
 
