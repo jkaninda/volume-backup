@@ -1,0 +1,8 @@
+🔴 Urgent: Database Backup Failure Notification
+Hi,
+An error occurred during data backup.
+Failure Details:
+- Date: {{.EndTime}}
+- Backup Reference: {{.BackupReference}}
+- Error Message: {{.Error}}
+

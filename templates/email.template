@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>✅  Data Backup Notification</title>
+</head>
+<body>
+<h2>Hi,</h2>
+<p>Backup of the your data has been successfully completed on {{.EndTime}}.</p>
+<h3>Backup Details:</h3>
+<ul>
+<li>Backup Start Time: {{.StartTime}}</li>
+<li>Backup End Time: {{.EndTime}}</li>
+<li>Backup Storage: {{.Storage}}</li>
+<li>Backup Location: {{.BackupLocation}}</li>
+<li>Backup Size: {{.BackupSize}} bytes</li>
+<li>Backup Reference: {{.BackupReference}} </li>
+</ul>
+<p>Best regards,</p>
+<p>©2024 <a href="https://github.com/jkaninda/pg-bkup">pg-bkup</a></p>
+</body>
+</html>

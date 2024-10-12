@@ -10,6 +10,7 @@ import (
 	"github.com/jkaninda/volume-backup/utils"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -98,4 +99,10 @@ func deleteTemp() {
 	} else {
 		utils.Info("Deleting %s ... done", tmpPath)
 	}
+}
+func RemoveLastExtension(filename string) string {
+	if idx := strings.LastIndex(filename, "."); idx != -1 {
+		return filename[:idx]
+	}
+	return filename
 }

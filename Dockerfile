@@ -36,33 +36,35 @@ ENV TZ=UTC
 ENV GNUPGHOME="/config/gnupg"
 ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
+ARG TEMPLATES_DIR="/config/templates"
 ARG DATADIR="/data"
 ARG BACKUP_TMP_DIR="/tmp/backup"
-ARG appVersion="0.0.1"
 ENV VERSION=${appVersion}
 LABEL author="Jonas Kaninda"
 LABEL version=${appVersion}
 
-RUN apk --update add --no-cache gnupg tzdata
+RUN apk --update add --no-cache ca-certificates tzdata
 RUN mkdir $WORKDIR
 RUN mkdir $BACKUPDIR
 RUN mkdir $DATADIR
 RUN mkdir -p $BACKUP_TMP_DIR
+RUN mkdir -p $TEMPLATES_DIR
 RUN chmod 777 $WORKDIR
 RUN chmod 777 $BACKUPDIR
 RUN chmod 777 $BACKUP_TMP_DIR
 RUN chmod 777 $DATADIR
 COPY --from=build /app/volume-backup /usr/local/bin/volume-backup
+COPY ./templates/* $TEMPLATES_DIR/
 RUN chmod +x /usr/local/bin/volume-backup
 
 RUN ln -s /usr/local/bin/volume-backup /usr/local/bin/bkup
 
 # Create the data script and make it executable
-RUN echo '#!/bin/sh\n/usr/local/bin/volume-backup backup "$@"' > /usr/local/bin/backup && \
+RUN printf '#!/bin/sh\n/usr/local/bin/volume-backup backup "$@"' > /usr/local/bin/backup && \
     chmod +x /usr/local/bin/backup
 
 # Create the restore script and make it executable
-RUN echo '#!/bin/sh\n/usr/local/bin/volume-backup restore "$@"' > /usr/local/bin/restore && \
+RUN printf '#!/bin/sh\n/usr/local/bin/volume-backup restore "$@"' > /usr/local/bin/restore && \
     chmod +x /usr/local/bin/restore
 WORKDIR $WORKDIR
 ENTRYPOINT ["/usr/local/bin/volume-backup"]

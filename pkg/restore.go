@@ -10,6 +10,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"fmt"
+	"github.com/jkaninda/encryptor"
 	"github.com/jkaninda/volume-backup/utils"
 	"github.com/spf13/cobra"
 	"io"
@@ -25,7 +26,7 @@ func StartRestore(cmd *cobra.Command) {
 	case "s3":
 		restoreFromS3(restoreConf.file, restoreConf.bucket, restoreConf.s3Path)
 	case "local":
-		utils.Info("Restore database from local")
+		utils.Info("Restore data from local")
 		copyToTmp(backupDestination, restoreConf.file)
 		RestoreData(restoreConf.file)
 	case "ssh":
@@ -33,14 +34,14 @@ func StartRestore(cmd *cobra.Command) {
 	case "ftp":
 		restoreFromFTP(restoreConf.file, restoreConf.remotePath)
 	default:
-		utils.Info("Restore database from local")
+		utils.Info("Restore data from local")
 		copyToTmp(backupDestination, restoreConf.file)
 		RestoreData(restoreConf.file)
 	}
 }
 
 func restoreFromS3(file, bucket, s3Path string) {
-	utils.Info("Restore database from s3")
+	utils.Info("Restore data from s3")
 	err := DownloadFile(tmpPath, file, bucket, s3Path)
 	if err != nil {
 		utils.Fatal("Error download file from s3 %s %v ", file, err)
@@ -48,7 +49,7 @@ func restoreFromS3(file, bucket, s3Path string) {
 	RestoreData(file)
 }
 func restoreFromRemote(file, remotePath string) {
-	utils.Info("Restore database from remote server")
+	utils.Info("Restore data from remote server")
 	err := CopyFromRemote(file, remotePath)
 	if err != nil {
 		utils.Fatal("Error download file from remote server: %s %v", filepath.Join(remotePath, file), err)
@@ -56,7 +57,7 @@ func restoreFromRemote(file, remotePath string) {
 	RestoreData(file)
 }
 func restoreFromFTP(file, remotePath string) {
-	utils.Info("Restore database from FTP server")
+	utils.Info("Restore data from FTP server")
 	err := CopyFromFTP(file, remotePath)
 	if err != nil {
 		utils.Fatal("Error download file from FTP server: %s %v", filepath.Join(remotePath, file), err)
@@ -77,7 +78,7 @@ func RestoreData(file string) {
 
 		} else {
 			//Decrypt file
-			err := Decrypt(filepath.Join(tmpPath, file), gpgPassphrase)
+			err := encryptor.Decrypt(filepath.Join(tmpPath, file), RemoveLastExtension(filepath.Join(tmpPath, file)), gpgPassphrase)
 			if err != nil {
 				utils.Fatal("Error decrypting file %s %v", file, err)
 			}
