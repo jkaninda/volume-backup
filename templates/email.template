@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>✅  Data Backup Notification</title>
+    <title>✅  Volume Backup Notification</title>
 </head>
 <body>
 <h2>Hi,</h2>
@@ -17,6 +17,6 @@
 <li>Backup Reference: {{.BackupReference}} </li>
 </ul>
 <p>Best regards,</p>
-<p>©2024 <a href="https://github.com/jkaninda/pg-bkup">pg-bkup</a></p>
+<p>©2024 <a href="https://github.com/jkaninda/volume-backup">volume-backup</a></p>
 </body>
 </html>

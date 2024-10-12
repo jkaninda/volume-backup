@@ -1,4 +1,4 @@
-[✅  Data Backup Notification
+✅  Volume Backup Notification
 Hi,
 Backup of the your data has been successfully completed on {{.EndTime}}.
 
