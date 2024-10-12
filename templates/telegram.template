@@ -1,0 +1,11 @@
+[✅  Data Backup Notification
+Hi,
+Backup of the your data has been successfully completed on {{.EndTime}}.
+
+Backup Details:
+- Backup Start Time: {{.StartTime}}
+- Backup EndTime: {{.EndTime}}
+- Backup Storage: {{.Storage}}
+- Backup Location: {{.BackupLocation}}
+- Backup Size: {{.BackupSize}} bytes
+- Backup Reference: {{.BackupReference}}

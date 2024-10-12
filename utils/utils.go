@@ -7,19 +7,16 @@
 package utils
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
 	"io"
 	"io/fs"
-	"io/ioutil"
-	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 )
 
+// FileExists checks if the file does exist
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
@@ -79,6 +76,46 @@ func ChangePermission(filePath string, mod int) {
 		Fatal("Error changing permissions of %s: %v\n", filePath, err)
 	}
 
+}
+
+// CopyDir recursively copies a directory tree, attempting to preserve permissions.
+func CopyDir(src string, dst string) error {
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	// Create the destination directory
+	err = os.MkdirAll(dst, srcInfo.Mode())
+	if err != nil {
+		return err
+	}
+
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			// Recursively copy subdirectories
+			err = CopyDir(srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Copy files
+			err = CopyFile(srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 func IsDirEmpty(name string) (bool, error) {
 	f, err := os.Open(name)
@@ -183,73 +220,4 @@ func GetIntEnv(envName string) int {
 		Error("Error: %v", err)
 	}
 	return ret
-}
-
-func sendMessage(msg string) {
-
-	Info("Sending notification... ")
-	chatId := os.Getenv("TG_CHAT_ID")
-	body, _ := json.Marshal(map[string]string{
-		"chat_id": chatId,
-		"text":    msg,
-	})
-	url := fmt.Sprintf("%s/sendMessage", getTgUrl())
-	// Create an HTTP post request
-	request, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
-	if err != nil {
-		panic(err)
-	}
-	request.Header.Add("Content-Type", "application/json")
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		panic(err)
-	}
-	code := response.StatusCode
-	if code == 200 {
-		Info("Notification has been sent")
-	} else {
-		body, _ := ioutil.ReadAll(response.Body)
-		Error("Message not sent, error: %s", string(body))
-	}
-
-}
-func NotifySuccess(fileName string) {
-	var vars = []string{
-		"TG_TOKEN",
-		"TG_CHAT_ID",
-	}
-
-	//Telegram notification
-	err := CheckEnvVars(vars)
-	if err == nil {
-		message := "[✅ Volume Backup ]\n" +
-			"Data has been backed up \n" +
-			"Backup name is " + fileName
-		sendMessage(message)
-	}
-}
-func NotifyError(error string) {
-	var vars = []string{
-		"TG_TOKEN",
-		"TG_CHAT_ID",
-	}
-
-	//Telegram notification
-	err := CheckEnvVars(vars)
-	if err == nil {
-		message := "[🔴 Volume Backup ]\n" +
-			"An error occurred during data backup \n" +
-			"Error: " + error
-		sendMessage(message)
-	}
-}
-
-func getTgUrl() string {
-	return fmt.Sprintf("https://api.telegram.org/bot%s", os.Getenv("TG_TOKEN"))
-
-}
-func IsValidCronExpression(cronExpr string) bool {
-	_, err := cron.ParseStandard(cronExpr)
-	return err == nil
 }

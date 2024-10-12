@@ -7,16 +7,17 @@
 package pkg
 
 const tmpPath = "/tmp/backup"
-const gpgHome = "/config/gnupg"
-const algorithm = "aes256"
 const gpgExtension = "gpg"
 const dataPath = "/data"
+const dataTmpPath = "/tmp/data"
 const backupDestination = "/backup"
 
 var (
-	storage    = "local"
-	file       = ""
-	encryption = false
+	storage          = "local"
+	file             = ""
+	encryption       = false
+	backupSize int64 = 0
+	startTime  string
 )
 
 var tdbRVars = []string{
