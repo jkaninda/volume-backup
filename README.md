@@ -135,12 +135,31 @@ docker run --rm  --name volume-backup \
 ```
 
 ## Backup notification
-Telegram notification
+
+### Telegram notification
 
 ```shell
 TG_TOKEN=Telegram token (`BOT-ID:BOT-TOKEN`)
 TG_CHAT_ID=
 ```
+### Email notification
+
+```shell
+MAIL_HOST=
+MAIL_PORT=587
+MAIL_USERNAME=
+MAIL_PASSWORD=!
+MAIL_FROM=Backup Jobs <backup@example.com>
+#Multiple recipients separated by a comma
+MAIL_TO=me@example.com,team@example.com,manager@example.com
+MAIL_SKIP_TLS=false
+# Backup time format for notification 
+TIME_FORMAT=2006-01-02 at 15:04:05
+#Backup reference, in case you want to identify every backup instance
+BACKUP_REFERENCE=docker/Paris cluster
+```
+
+
 ---
 ## Run in Scheduled mode
 
