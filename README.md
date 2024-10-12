@@ -138,13 +138,13 @@ docker run --rm  --name volume-backup \
 
 ### Telegram notification
 
-```shell
+```env
 TG_TOKEN=Telegram token (`BOT-ID:BOT-TOKEN`)
 TG_CHAT_ID=
 ```
 ### Email notification
 
-```shell
+```env
 MAIL_HOST=
 MAIL_PORT=587
 MAIL_USERNAME=
