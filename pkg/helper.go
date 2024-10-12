@@ -100,6 +100,15 @@ func deleteTemp() {
 		utils.Info("Deleting %s ... done", tmpPath)
 	}
 }
+func deleteDataTemp() {
+	utils.Info("Deleting %s ...", dataTmpPath)
+	err := os.RemoveAll(dataTmpPath)
+	if err != nil {
+		utils.Error("Error deleting files: %v", err)
+		return
+	}
+	utils.Info("Deleting %s ... done", dataTmpPath)
+}
 func RemoveLastExtension(filename string) string {
 	if idx := strings.LastIndex(filename, "."); idx != -1 {
 		return filename[:idx]

@@ -99,7 +99,11 @@ func BackupData(config *BackupConfig) {
 			utils.Fatal("Error compressing file, error %v", err)
 		}
 	} else {
-		err := compressFolder(dataPath, config.backupFileName)
+		err := utils.CopyDir(dataPath, dataTmpPath)
+		if err != nil {
+			utils.Fatal("Error copying file, error %v", err)
+		}
+		err = compressFolder(dataTmpPath, config.backupFileName)
 		if err != nil {
 			utils.Fatal("Error creating file, error %v", err)
 		}
@@ -141,6 +145,7 @@ func localBackup(config *BackupConfig) {
 		deleteOldBackup(config.backupRetention)
 	}
 	//Delete temp
+	deleteDataTemp()
 	deleteTemp()
 }
 
@@ -196,6 +201,7 @@ func s3Backup(config *BackupConfig) {
 		EndTime:        time.Now().Format(utils.TimeFormat()),
 	})
 	//Delete temp
+	deleteDataTemp()
 	deleteTemp()
 }
 func sshBackup(config *BackupConfig) {
@@ -247,6 +253,7 @@ func sshBackup(config *BackupConfig) {
 		EndTime:        time.Now().Format(utils.TimeFormat()),
 	})
 	//Delete temp
+	deleteDataTemp()
 	deleteTemp()
 }
 func ftpBackup(config *BackupConfig) {
@@ -298,6 +305,7 @@ func ftpBackup(config *BackupConfig) {
 		EndTime:        time.Now().Format(utils.TimeFormat()),
 	})
 	//Delete temp
+	deleteDataTemp()
 	deleteTemp()
 }
 

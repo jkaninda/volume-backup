@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strconv"
 )
 
@@ -75,6 +76,46 @@ func ChangePermission(filePath string, mod int) {
 		Fatal("Error changing permissions of %s: %v\n", filePath, err)
 	}
 
+}
+
+// CopyDir recursively copies a directory tree, attempting to preserve permissions.
+func CopyDir(src string, dst string) error {
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	// Create the destination directory
+	err = os.MkdirAll(dst, srcInfo.Mode())
+	if err != nil {
+		return err
+	}
+
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			// Recursively copy subdirectories
+			err = CopyDir(srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Copy files
+			err = CopyFile(srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 func IsDirEmpty(name string) (bool, error) {
 	f, err := os.Open(name)
