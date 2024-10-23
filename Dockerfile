@@ -10,49 +10,20 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/volume-backup
 
 FROM alpine:3.20.3
-ENV STORAGE=local
-ENV AWS_S3_ENDPOINT=""
-ENV AWS_S3_BUCKET_NAME=""
-ENV AWS_ACCESS_KEY=""
-ENV AWS_SECRET_KEY=""
-ENV AWS_S3_PATH=""
-ENV AWS_REGION="us-west-2"
-ENV AWS_DISABLE_SSL="false"
-ENV GPG_PASSPHRASE=""
-ENV SSH_USER=""
-ENV SSH_PASSWORD=""
-ENV SSH_HOST=""
-ENV SSH_IDENTIFY_FILE=""
-ENV SSH_PORT=22
-ENV REMOTE_PATH=""
-ENV FTP_HOST=""
-ENV FTP_PORT=21
-ENV FTP_USER=""
-ENV FTP_PASSWORD=""
-ENV BACKUP_CRON_EXPRESSION=""
-ENV TG_TOKEN=""
-ENV TG_CHAT_ID=""
 ENV TZ=UTC
-ENV GNUPGHOME="/config/gnupg"
 ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
-ARG TEMPLATES_DIR="/config/templates"
-ARG DATADIR="/data"
 ARG BACKUP_TMP_DIR="/tmp/backup"
+ARG TEMPLATES_DIR="/config/templates"
+ARG appVersion=""
 ENV VERSION=${appVersion}
 LABEL author="Jonas Kaninda"
 LABEL version=${appVersion}
+LABEL github="github.com/jkaninda/volume-backup"
 
-RUN apk --update add --no-cache ca-certificates tzdata
-RUN mkdir $WORKDIR
-RUN mkdir $BACKUPDIR
-RUN mkdir $DATADIR
-RUN mkdir -p $BACKUP_TMP_DIR
-RUN mkdir -p $TEMPLATES_DIR
-RUN chmod 777 $WORKDIR
-RUN chmod 777 $BACKUPDIR
-RUN chmod 777 $BACKUP_TMP_DIR
-RUN chmod 777 $DATADIR
+RUN apk --update add --no-cache tzdata ca-certificates
+RUN mkdir -p $WORKDIR $BACKUPDIR $TEMPLATES_DIR $BACKUP_TMP_DIR && \
+     chmod a+rw $WORKDIR $BACKUPDIR $BACKUP_TMP_DIR
 COPY --from=build /app/volume-backup /usr/local/bin/volume-backup
 COPY ./templates/* $TEMPLATES_DIR/
 RUN chmod +x /usr/local/bin/volume-backup
