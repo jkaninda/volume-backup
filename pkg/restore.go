@@ -30,22 +30,19 @@ func StartRestore(cmd *cobra.Command) {
 	case "s3":
 		restoreFromS3(restoreConf.file, restoreConf.bucket, restoreConf.s3Path)
 	case "local":
-		utils.Info("Restore data from local")
-		copyToTmp(backupDestination, restoreConf.file)
-		RestoreData(restoreConf.file)
+		localRestore(restoreConf.file)
 	case "ssh":
 		restoreFromRemote(restoreConf.file, restoreConf.remotePath)
 	case "ftp":
 		restoreFromFTP(restoreConf.file, restoreConf.remotePath)
 	default:
-		utils.Info("Restore data from local")
-		copyToTmp(backupDestination, restoreConf.file)
 		localRestore(restoreConf.file)
+
 	}
 }
 
 func localRestore(file string) {
-
+	utils.Info("Restore data from local")
 	localStorage := local.NewStorage(local.Config{
 		LocalPath:  tmpPath,
 		RemotePath: backupDestination,

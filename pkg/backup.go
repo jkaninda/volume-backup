@@ -154,7 +154,11 @@ func localBackup(config *BackupConfig) {
 	})
 	//Delete old data
 	if config.prune {
-		deleteOldBackup(config.backupRetention)
+		err := localStorage.Prune(config.backupRetention)
+		if err != nil {
+			utils.Error("Error pruning file, error %v", err)
+			return
+		}
 	}
 	//Delete temp
 	deleteDataTemp()
@@ -275,9 +279,11 @@ func sshBackup(config *BackupConfig) {
 
 	}
 	if config.prune {
-		//TODO: Delete old data from remote server
-		utils.Info("Deleting old backup from a remote server is not implemented yet")
-
+		err := sshStorage.Prune(config.backupRetention)
+		if err != nil {
+			utils.Error("Error pruning file, error %v", err)
+			return
+		}
 	}
 
 	utils.Done("Uploading backup archive to remote storage ... done ")
@@ -337,8 +343,11 @@ func ftpBackup(config *BackupConfig) {
 
 	}
 	if config.prune {
-		//TODO: Delete old data from remote server
-		utils.Info("Deleting old data from a remote server is not implemented yet")
+		err := ftpStorage.Prune(config.backupRetention)
+		if err != nil {
+			utils.Error("Error pruning file, error %v", err)
+			return
+		}
 
 	}
 
