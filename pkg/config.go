@@ -56,6 +56,7 @@ type AWSConfig struct {
 	region         string
 	disableSsl     bool
 	forcePathStyle bool
+	remotePath     string
 }
 
 // loadSSHConfig loads the SSH configuration from environment variables
@@ -97,6 +98,7 @@ func initAWSConfig() *AWSConfig {
 	aConfig.secretKey = os.Getenv("AWS_SECRET_KEY")
 	aConfig.bucket = os.Getenv("AWS_S3_BUCKET_NAME")
 	aConfig.region = os.Getenv("AWS_REGION")
+	aConfig.remotePath = os.Getenv("REMOTE_PATH")
 	disableSsl, err := strconv.ParseBool(os.Getenv("AWS_DISABLE_SSL"))
 	if err != nil {
 		utils.Fatal("Unable to parse AWS_DISABLE_SSL env var: %s", err)

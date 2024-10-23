@@ -11,6 +11,10 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/jkaninda/encryptor"
+	"github.com/jkaninda/go-storage/pkg/ftp"
+	"github.com/jkaninda/go-storage/pkg/local"
+	"github.com/jkaninda/go-storage/pkg/s3"
+	"github.com/jkaninda/go-storage/pkg/ssh"
 	"github.com/jkaninda/volume-backup/utils"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/cobra"
@@ -130,7 +134,15 @@ func localBackup(config *BackupConfig) {
 	}
 	backupSize = fileInfo.Size()
 
-	moveToBackup(finalFileName, backupDestination)
+	//moveToBackup(finalFileName, backupDestination)
+	localStorage := local.NewStorage(local.Config{
+		LocalPath:  tmpPath,
+		RemotePath: backupDestination,
+	})
+	err = localStorage.Copy(finalFileName)
+	if err != nil {
+		utils.Fatal("Error copying file, error %v", err)
+	}
 	//Send notification
 	utils.NotifySuccess(&utils.NotificationData{
 		File:           finalFileName,
@@ -150,11 +162,9 @@ func localBackup(config *BackupConfig) {
 }
 
 func s3Backup(config *BackupConfig) {
-	bucket := utils.GetEnvVariable("AWS_S3_BUCKET_NAME", "BUCKET_NAME")
-	s3Path := utils.GetEnvVariable("AWS_S3_PATH", "S3_PATH")
 	utils.Info("Backup data to s3 storage")
 	startTime = time.Now().Format(utils.TimeFormat())
-
+	awsConfig := initAWSConfig()
 	//Backup data
 	BackupData(config)
 	finalFileName := config.backupFileName
@@ -165,10 +175,23 @@ func s3Backup(config *BackupConfig) {
 	utils.Info("Uploading backup archive to remote storage S3 ... ")
 
 	utils.Info("Backup name is %s", finalFileName)
-	err := UploadFileToS3(tmpPath, finalFileName, bucket, s3Path)
+	s3Storage, err := s3.NewStorage(s3.Config{
+		Endpoint:       awsConfig.endpoint,
+		Bucket:         awsConfig.bucket,
+		AccessKey:      awsConfig.accessKey,
+		SecretKey:      awsConfig.secretKey,
+		Region:         awsConfig.region,
+		DisableSsl:     awsConfig.disableSsl,
+		ForcePathStyle: awsConfig.forcePathStyle,
+		RemotePath:     awsConfig.remotePath,
+		LocalPath:      tmpPath,
+	})
 	if err != nil {
-		utils.Fatal("Error uploading backup archive to S3: %s ", err)
-
+		utils.Fatal("Error creating s3 storage: %s", err)
+	}
+	err = s3Storage.Copy(finalFileName)
+	if err != nil {
+		utils.Fatal("Error copying file, error %v", err)
 	}
 	//Get backup info
 	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
@@ -185,7 +208,7 @@ func s3Backup(config *BackupConfig) {
 	}
 	// Delete old data
 	if config.prune {
-		err := DeleteOldBackup(bucket, s3Path, config.backupRetention)
+		err := s3Storage.Prune(config.backupRetention)
 		if err != nil {
 			utils.Fatal("Error deleting old backup from S3: %s ", err)
 		}
@@ -217,10 +240,25 @@ func sshBackup(config *BackupConfig) {
 	}
 	utils.Info("Uploading backup archive to remote storage ... ")
 	utils.Info("Backup name is %s", finalFileName)
-	err := CopyToRemote(finalFileName, config.remotePath)
+	sshConfig, err := loadSSHConfig()
 	if err != nil {
-		utils.Fatal("Error uploading file to the remote server: %s ", err)
-
+		utils.Fatal("Error loading ssh config: %s", err)
+	}
+	sshStorage, err := ssh.NewStorage(ssh.Config{
+		Host:         sshConfig.hostName,
+		Port:         sshConfig.port,
+		User:         sshConfig.user,
+		Password:     sshConfig.password,
+		IdentifyFile: sshConfig.identifyFile,
+		RemotePath:   config.remotePath,
+		LocalPath:    tmpPath,
+	})
+	if err != nil {
+		utils.Fatal("Error creating SSH storage: %s", err)
+	}
+	err = sshStorage.Copy(finalFileName)
+	if err != nil {
+		utils.Fatal("Error copying file, error %v", err)
 	}
 
 	//Get backup info
@@ -269,12 +307,22 @@ func ftpBackup(config *BackupConfig) {
 	}
 	utils.Info("Uploading backup archive to the remote FTP server ... ")
 	utils.Info("Backup name is %s", finalFileName)
-	err := CopyToFTP(finalFileName, config.remotePath)
+	ftpConfig := initFtpConfig()
+	ftpStorage, err := ftp.NewStorage(ftp.Config{
+		Host:       ftpConfig.host,
+		Port:       ftpConfig.port,
+		User:       ftpConfig.user,
+		Password:   ftpConfig.password,
+		RemotePath: config.remotePath,
+		LocalPath:  tmpPath,
+	})
+	if err != nil {
+		utils.Fatal("Error creating FTP storage: %s", err)
+	}
+	err = ftpStorage.Copy(finalFileName)
 	if err != nil {
 		utils.Fatal("Error uploading file to the remote FTP server: %s ", err)
-
 	}
-
 	//Get backup info
 	fileInfo, err := os.Stat(filepath.Join(tmpPath, finalFileName))
 	if err != nil {
@@ -310,7 +358,12 @@ func ftpBackup(config *BackupConfig) {
 }
 
 func encryptBackup(backupFileName, gpqPassphrase string) {
-	err := encryptor.Encrypt(filepath.Join(tmpPath, backupFileName), fmt.Sprintf("%s.%s", filepath.Join(tmpPath, backupFileName), gpgExtension), gpqPassphrase)
+	backupFile, err := os.ReadFile(filepath.Join(tmpPath, backupFileName))
+	outputFile := fmt.Sprintf("%s.%s", filepath.Join(tmpPath, backupFileName), gpgExtension)
+	if err != nil {
+		utils.Fatal("Error reading backup file: %s ", err)
+	}
+	err = encryptor.Encrypt(backupFile, outputFile, gpqPassphrase)
 	if err != nil {
 		utils.Fatal("Error during encrypting backup %v", err)
 	}
