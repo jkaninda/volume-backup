@@ -100,7 +100,7 @@ func NotifySuccess(notificationData *NotificationData) {
 	//Email notification
 	err := CheckEnvVars(mailVars)
 	if err == nil {
-		body, err := parseTemplate(*notificationData, "email.template")
+		body, err := parseTemplate(*notificationData, "email.tmpl")
 		if err != nil {
 			Error("Could not parse email template: %v", err)
 		}
@@ -112,7 +112,7 @@ func NotifySuccess(notificationData *NotificationData) {
 	//Telegram notification
 	err = CheckEnvVars(vars)
 	if err == nil {
-		message, err := parseTemplate(*notificationData, "telegram.template")
+		message, err := parseTemplate(*notificationData, "telegram.tmpl")
 		if err != nil {
 			Error("Could not parse telegram template: %v", err)
 		}
@@ -144,7 +144,7 @@ func NotifyError(error string) {
 			Error:           error,
 			EndTime:         time.Now().Format(TimeFormat()),
 			BackupReference: os.Getenv("BACKUP_REFERENCE"),
-		}, "email-error.template")
+		}, "email-error.tmpl")
 		if err != nil {
 			Error("Could not parse error template: %v", err)
 		}
@@ -160,7 +160,7 @@ func NotifyError(error string) {
 			Error:           error,
 			EndTime:         time.Now().Format(TimeFormat()),
 			BackupReference: os.Getenv("BACKUP_REFERENCE"),
-		}, "telegram-error.template")
+		}, "telegram-error.tmpl")
 		if err != nil {
 			Error("Could not parse error template: %v", err)
 
