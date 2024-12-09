@@ -9,7 +9,7 @@ RUN go mod download
 # Build
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/volume-backup
 
-FROM alpine:3.20.3
+FROM alpine:3.21.0
 ENV TZ=UTC
 ARG WORKDIR="/config"
 ARG BACKUPDIR="/backup"
